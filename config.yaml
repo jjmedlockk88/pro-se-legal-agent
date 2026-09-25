@@ -1,0 +1,210 @@
+# Pro Se Legal Agent - NYE County, NV Configuration
+
+# LLM Configuration
+llm:
+  provider: ollama
+  base_url: http://localhost:11434
+  model: mistral:7b  # Primary model for 16GB MacBook
+  temperature: 0.3  # Lower = more deterministic (good for legal)
+  max_tokens: 2000
+  
+  # Alternative models (swap if needed)
+  # model: llama2:7b      # Good reasoning, slightly slower
+  # model: openhermes:7b  # Better instruction following
+  # model: phi:latest     # Fastest (2.7B params) but less capable
+  
+  # Retry settings
+  timeout: 60
+  retries: 3
+  retry_delay: 2
+
+# Jurisdiction Configuration
+jurisdiction:
+  state: Nevada
+  county: Nye
+  county_code: 031
+  primary_courthouse: "Nye County District Court, Pahrump"
+  address: "2100 E Main St, Pahrump, NV 89060"
+  phone: "(775) 751-7000"
+  website: "https://www.nyecourts.us"
+  
+  # Court contacts
+  clerk_of_court: "Nye County Clerk of Court"
+  district_attorney: "Nye County District Attorney"
+  public_defender: "Nye County Public Defender"
+  
+  # Rules
+  rules_of_criminal_procedure: "Nevada Rules of Criminal Procedure"
+  rules_of_civil_procedure: "Nevada Rules of Civil Procedure"
+  local_rules: "Nye County District Court Local Rules"
+
+# Case Management
+cases:
+  base_dir: "./cases"  # Local directory for case files
+  default_case: null
+  
+  # Statute of limitations (Nevada + Federal)
+  statutes_of_limitations:
+    criminal_felony: 3  # years
+    criminal_misdemeanor: 2
+    section_1983_federal: 3
+    state_tort: 2
+    nevada_civil_rights: 4
+
+# Legal Research Settings
+legal_research:
+  sources:
+    - google_scholar  # Free case law
+    - courtlistener   # Free PACER aggregation
+    - cornell_law     # Statutes, rules
+    - justia         # Cases, articles
+    - nv_legislature  # Nevada statutes
+  
+  # Scraping settings
+  rate_limit_per_second: 0.5  # Be respectful to free services
+  cache_results: true
+  cache_dir: "./cache/legal_research"
+  cache_ttl: 604800  # 7 days
+
+# PACER Configuration
+pacer:
+  enabled: true
+  base_url: "https://pacer.uscourts.gov"
+  
+  # Free PACER access
+  free_lookup: true
+  
+  # Court URLs for Nevada
+  federal_district_court_nv: "https://www.nvd.uscourts.gov"
+  federal_appellate_court_9th: "https://www.ca9.uscourts.gov"
+  
+  # Document retrieval
+  max_docket_search_results: 100
+  cache_dockets: true
+  cache_dir: "./cache/pacer"
+
+# FOIA Configuration
+foia:
+  enabled: true
+  
+  # NYE County agencies
+  agencies:
+    - name: "Nye County Sheriff's Office"
+      department_id: "NYCSO"
+      foia_contact: "foia@nyecounty.us"
+      address: "1525 Shoshone St, Pahrump, NV 89060"
+    - name: "Nevada Highway Patrol - Pahrump Office"
+      department_id: "NHPD"
+      foia_contact: "records@nhp.nv.gov"
+    - name: "Nye County District Attorney"
+      department_id: "NYDA"
+      foia_contact: "records@nyecounty.us"
+  
+  # Request settings
+  default_request_type: "records_request"  # Nevada uses public records requests
+  include_explanatory_letter: true
+  request_deadline_days: 30
+  appeal_deadline_days: 15
+
+# Document Generation
+documents:
+  output_dir: "./documents"
+  templates_dir: "./knowledge_base/forms"
+  
+  # Formatting preferences
+  default_font: "Times New Roman"
+  default_font_size: 12
+  line_spacing: 2  # Double-spaced (court standard)
+  margins: [1.0, 1.0, 1.0, 1.0]  # inches (top, right, bottom, left)
+  
+  # Header/footer
+  case_caption_format: "[Case Name] v. [Defendant]\n[Case Number]"
+  court_name: "District Court of Nevada, Nye County"
+
+# Skills Configuration
+skills:
+  criminal_defense:
+    enabled: true
+    focus:
+      - motion_drafting
+      - discovery_analysis
+      - plea_negotiation
+      - appeal_research
+  
+  civil_rights:
+    enabled: true
+    focus:
+      - monell_doctrine
+      - section_1983_litigation
+      - policy_discovery
+      - damages_analysis
+  
+  general:
+    enabled: true
+    focus:
+      - deadline_tracking
+      - legal_research
+      - document_organization
+
+# Knowledge Base
+knowledge_base:
+  base_dir: "./knowledge_base"
+  
+  categories:
+    - nye_county
+    - criminal_procedure
+    - civil_rights
+    - case_law
+    - forms
+  
+  auto_index: true
+  search_backend: "sqlite"  # Full-text search
+
+# Plugins
+plugins:
+  pacer_scraper:
+    enabled: true
+    rate_limit: 0.5  # seconds between requests
+  
+  scholar_scraper:
+    enabled: true
+    rate_limit: 1.0
+    search_limit: 50  # Results per search
+  
+  foia_builder:
+    enabled: true
+    auto_submit: false  # Require manual review before submit
+  
+  deadline_calculator:
+    enabled: true
+    warn_days_before: 14  # Notify 2 weeks before deadline
+
+# Logging
+logging:
+  level: INFO
+  format: "[%(asctime)s] %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/agent.log"
+  console: true
+
+# Performance Tuning (for 16GB MacBook)
+performance:
+  # Number of threads for parallel scraping
+  max_workers: 2  # Keep low to avoid memory thrashing
+  
+  # Batch processing
+  batch_size: 5
+  
+  # Caching
+  cache_enabled: true
+  cache_backend: "sqlite"
+  
+  # Memory-conscious settings
+  stream_large_responses: true
+  checkpoint_long_tasks: true
+
+# Development/Debug
+debug:
+  enabled: false
+  verbose_logging: false
+  mock_llm_responses: false  # Set true to test without Ollama
+  save_all_prompts: false
